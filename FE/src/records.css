@@ -1,4 +1,5 @@
 .records-panel { padding: 30px; }
+.section-note { margin-top: 8px; color: #8395a4; font-size: 13px; }
 .records-toolbar { display: flex; align-items: center; gap: 14px; margin: 25px 0 16px; }
 .records-toolbar input { flex: 1; min-width: 0; padding: 13px 15px; }
 .records-toolbar span { color: #72869a; font-size: 13px; font-weight: 800; white-space: nowrap; }
@@ -14,6 +15,11 @@
 .records-table td a { display: inline-block; margin-right: 12px; color: #137d75; font-weight: 900; text-decoration: none; }
 .records-table td a:hover { color: #0b5b57; text-decoration: underline; }
 .empty-inline { padding: 52px 0; color: #8294a4; text-align: center; }
+.record-status { display: inline-flex; padding: 6px 8px; border-radius: 999px; background: #fff4dc; color: #9b6b17; font-size: 10px; font-weight: 900; letter-spacing: .04em; white-space: nowrap; }
+.record-status.aprobada { background: #e7f8ef; color: #197b51; }
+.record-status.rechazada, .record-status.error { background: #fff0f1; color: #b23f4c; }
+.table-action { margin-right: 9px; padding: 0; border: 0; background: transparent; color: #137d75; cursor: pointer; font-size: 13px; font-weight: 900; }
+.table-action:hover { color: #0b5b57; text-decoration: underline; }
 
 @media (max-width: 560px) {
   .records-panel { padding: 21px 17px; }
