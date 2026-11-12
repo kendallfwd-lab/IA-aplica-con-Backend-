@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, RefreshToken } = require('../models');
+const { User, RefreshToken, Membership } = require('../models');
 
 const ACCESS_TTL = process.env.ACCESS_TOKEN_TTL || '15m';
 const REFRESH_DAYS = Number(process.env.REFRESH_TOKEN_DAYS || 30);
@@ -22,6 +22,8 @@ function accessToken(user) {
 async function login(email, password) {
   const user = await User.unscoped().findOne({ where: { email: String(email || '').trim().toLowerCase() } });
   if (!user || !user.activo) throw new Error('Credenciales inválidas.');
+  const membership = user && await Membership.findOne({ where: { usuarioId: user.id, organizacionId: user.organizacionId, activo: true } });
+  if (!membership) throw new Error('El usuario no tiene una membresía activa.');
   if (user.bloqueadoHasta && new Date(user.bloqueadoHasta) > new Date()) throw new Error('Cuenta temporalmente bloqueada.');
   const valid = await bcrypt.compare(String(password || ''), user.passwordHash);
   if (!valid) {
@@ -59,6 +61,7 @@ async function bootstrapAdmin({ name, email, password, organizationName = 'Siste
   const existing = await User.unscoped().findOne({ where: { email: normalized } });
   if (existing) throw new Error('Ya existe un usuario con ese correo.');
   const user = await User.create({ nombre: name, email: normalized, passwordHash: await bcrypt.hash(password, 12), rol: 'SUPER_ADMIN', organizacionId: organization.id });
+  await Membership.create({ usuarioId: user.id, organizacionId: organization.id, rol: 'SUPER_ADMIN', activo: true });
   return publicUser(user);
 }
 
