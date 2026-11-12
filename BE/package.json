@@ -10,6 +10,7 @@
     "db:seed": "sequelize-cli db:seed:all",
     "db:undo": "sequelize-cli db:migrate:undo:all",
     "admin:bootstrap": "node scripts/bootstrapAdmin.js",
+    "admin:reset-password": "node scripts/resetAdminPassword.js",
     "test": "node --test tests/*.test.js"
   },
   "keywords": [],
