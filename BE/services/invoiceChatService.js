@@ -13,15 +13,16 @@ Responde SIEMPRE como JSON con esta forma exacta:
 {"reply":"mensaje en español","complete":false,"factura":null}
 Cuando el usuario confirme y todos los datos obligatorios estén disponibles, usa complete=true y coloca factura con los campos recopilados.`;
 
-async function stateFor(id) {
-  if (!sessions.has(id)) {
-    const stored = await getConversation(id, 24);
-    sessions.set(id, {
+async function stateFor(id, organizacionId) {
+  const key = `${organizacionId}:${id}`;
+  if (!sessions.has(key)) {
+    const stored = await getConversation(id, 24, organizacionId);
+    sessions.set(key, {
       messages: stored.map((row) => ({ role: row.role, content: row.content })),
       saved: null,
     });
   }
-  return sessions.get(id);
+  return sessions.get(key);
 }
 
 function parseResponse(text) {
@@ -34,11 +35,12 @@ async function respond(conversationId, userMessage, options = {}) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Falta configurar OPENAI_API_KEY en BE/.env');
 
-  const state = await stateFor(conversationId);
+  const state = await stateFor(conversationId, options.organizacionId);
   if (state.saved) return { ...state.saved, alreadySaved: true };
 
   state.messages.push({ role: 'user', content: userMessage.trim() });
   await saveMessage({
+    organizacionId: options.organizacionId,
     conversationId,
     role: 'user',
     content: userMessage.trim(),
@@ -61,6 +63,7 @@ async function respond(conversationId, userMessage, options = {}) {
   const result = parseResponse(payload?.choices?.[0]?.message?.content || '{}');
   state.messages.push({ role: 'assistant', content: JSON.stringify(result) });
   await saveMessage({
+    organizacionId: options.organizacionId,
     conversationId,
     role: 'assistant',
     content: result.reply || JSON.stringify(result),
@@ -71,7 +74,7 @@ async function respond(conversationId, userMessage, options = {}) {
   });
 
   if (result.complete && result.factura) {
-    const saved = await saveInvoice(result.factura, conversationId);
+    const saved = await saveInvoice(result.factura, conversationId, { organizacionId: options.organizacionId });
     state.saved = { reply: `${result.reply}\n\nFactura guardada con el número ${saved.id}.`, complete: true, factura: saved, invoiceId: saved.id };
     return state.saved;
   }
@@ -79,8 +82,8 @@ async function respond(conversationId, userMessage, options = {}) {
   return { reply: result.reply || '¿Qué dato deseas agregar?', complete: false, factura: result.factura || null, conversationId };
 }
 
-function clearConversation(conversationId) {
-  sessions.delete(conversationId);
+function clearConversation(conversationId, organizacionId) {
+  sessions.delete(`${organizacionId}:${conversationId}`);
 }
 
 module.exports = { respond, clearConversation };

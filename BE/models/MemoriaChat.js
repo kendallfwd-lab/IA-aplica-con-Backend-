@@ -1,6 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define('MemoriaChat', {
     id: { type: DataTypes.BIGINT.UNSIGNED, autoIncrement: true, primaryKey: true },
+    organizacionId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, field: 'organizacion_id' },
     conversationId: { type: DataTypes.STRING(120), allowNull: false, field: 'conversation_id' },
     role: { type: DataTypes.STRING(20), allowNull: false },
     content: { type: DataTypes.TEXT('long'), allowNull: false },
@@ -15,4 +16,3 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'memoria_chat',
   });
 };
-

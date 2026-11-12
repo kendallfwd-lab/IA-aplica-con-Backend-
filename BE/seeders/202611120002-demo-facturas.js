@@ -1,9 +1,13 @@
 module.exports = {
-  async up(queryInterface) {
+  async up(queryInterface, Sequelize) {
     const now = new Date();
+    const [organizations] = await queryInterface.sequelize.query("SELECT id FROM organizaciones WHERE slug = 'sistemavision' LIMIT 1");
+    const organizacionId = organizations[0]?.id;
+    if (!organizacionId) throw new Error('Debe ejecutarse la migración de organizaciones antes del seeder.');
 
     await queryInterface.bulkInsert('facturas', [
       {
+        organizacion_id: organizacionId,
         conversation_id: 'demo-cliente-001',
         numero_factura: 'FICT-0001',
         fecha_emision: '2026-11-01',
@@ -20,8 +24,10 @@ module.exports = {
         datos_estructurados: JSON.stringify({ demo: true, origen: 'seeder' }),
         created_at: now,
         updated_at: now,
+        estado: 'PENDIENTE_REVISION',
       },
       {
+        organizacion_id: organizacionId,
         conversation_id: 'demo-cliente-002',
         numero_factura: 'FICT-0002',
         fecha_emision: '2026-11-05',
@@ -37,8 +43,10 @@ module.exports = {
         datos_estructurados: JSON.stringify({ demo: true, origen: 'seeder' }),
         created_at: now,
         updated_at: now,
+        estado: 'PENDIENTE_REVISION',
       },
       {
+        organizacion_id: organizacionId,
         conversation_id: 'demo-cliente-003',
         numero_factura: 'FICT-0003',
         fecha_emision: '2026-11-10',
@@ -54,6 +62,7 @@ module.exports = {
         datos_estructurados: JSON.stringify({ demo: true, origen: 'seeder' }),
         created_at: now,
         updated_at: now,
+        estado: 'PENDIENTE_REVISION',
       },
     ]);
   },
@@ -64,4 +73,3 @@ module.exports = {
     });
   },
 };
-

@@ -1,6 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Factura = sequelize.define('Factura', {
     id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+    organizacionId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, field: 'organizacion_id' },
     conversationId: { type: DataTypes.STRING(120), allowNull: true, field: 'conversation_id' },
     numeroFactura: { type: DataTypes.STRING(120), allowNull: true, field: 'numero_factura' },
     fechaEmision: { type: DataTypes.STRING(40), allowNull: true, field: 'fecha_emision' },
@@ -14,6 +15,13 @@ module.exports = (sequelize, DataTypes) => {
     datosEstructurados: { type: DataTypes.JSON, allowNull: false, field: 'datos_estructurados' },
     imagenOriginal: { type: DataTypes.BLOB('long'), allowNull: true, field: 'imagen_original' },
     imagenMimeType: { type: DataTypes.STRING(80), allowNull: true, field: 'imagen_mime_type' },
+    estado: { type: DataTypes.STRING(30), allowNull: false, defaultValue: 'PENDIENTE_REVISION' },
+    revisadoPor: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true, field: 'revisado_por' },
+    revisadoAt: { type: DataTypes.DATE, allowNull: true, field: 'revisado_at' },
+    revisionComentario: { type: DataTypes.TEXT, allowNull: true, field: 'revision_comentario' },
+    archivoSha256: { type: DataTypes.STRING(64), allowNull: true, field: 'archivo_sha256' },
+    posibleDuplicado: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'posible_duplicado' },
+    duplicadoRazon: { type: DataTypes.STRING(255), allowNull: true, field: 'duplicado_razon' },
   }, {
     tableName: 'facturas',
   });

@@ -19,8 +19,22 @@ body {
 
 #root { min-height: 100svh; }
 .shell { width: min(1280px, 100%); margin: 0 auto; padding: 48px 32px 72px; }
+.auth-shell { display: grid; min-height: 100svh; place-items: center; padding: 24px; background: radial-gradient(circle at 20% 10%, rgba(44,183,166,.16), transparent 28rem), #f4f8fb; }
+.auth-card { width: min(440px, 100%); padding: 40px; border: 1px solid #d8e7ec; border-radius: 26px; background: rgba(255,255,255,.95); box-shadow: 0 25px 70px rgba(26,61,84,.12); }
+.auth-card h1 { margin: 0; color: #15263b; font-size: 2rem; letter-spacing: -.04em; }
+.auth-card > p { margin: 12px 0 26px; color: #718399; line-height: 1.6; }
+.auth-card form { display: grid; gap: 17px; }
+.auth-card label { display: grid; gap: 8px; color: #5c7388; font-size: 12px; font-weight: 800; }
+.auth-card input { width: 100%; padding: 13px 14px; border: 1px solid #d7e4eb; border-radius: 12px; outline: none; color: #1e344a; }
+.auth-card input:focus { border-color: #39ae9f; box-shadow: 0 0 0 4px #e0f6f2; }
+.auth-card small { display: block; margin-top: 20px; color: #8798a6; line-height: 1.5; }
+.auth-card code { padding: 2px 5px; border-radius: 5px; background: #eef5f6; color: #176e69; }
+.auth-submit { min-height: 46px; }
 
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 34px; }
+.top-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.user-chip { max-width: 190px; overflow: hidden; padding: 9px 12px; border: 1px solid #cfe8e3; border-radius: 999px; background: #f1fbf8; color: #237d72; font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.logout-button { color: #7a5a63; }
 .topbar h1, .panel-heading h2 { margin: 0; color: #15263b; letter-spacing: -.045em; }
 .topbar h1 { font-size: clamp(2.3rem, 5vw, 4rem); line-height: 1; font-weight: 800; }
 .topbar p { max-width: 640px; margin: 15px 0 0; color: #718399; font-size: 1rem; line-height: 1.6; }
@@ -78,6 +92,7 @@ body {
 .invoice-card strong { display: block; color: #147c72; font-size: 26px; }
 .invoice-card small { display: block; margin-top: 15px; color: #8193a1; }
 .invoice-image { display: block; width: 100%; border: 1px solid #dce6ec; border-radius: 12px; box-shadow: 0 8px 20px rgba(34,63,83,.06); }
+.image-loading { display: grid; min-height: 160px; place-items: center; border: 1px dashed #cbdde4; border-radius: 12px; background: #f8fbfc; color: #8496a4; font-size: 13px; }
 .actions { display: flex; gap: 10px; margin-top: 15px; }
 .link-button { display: block; flex: 1; padding: 12px 15px; border-radius: 11px; text-align: center; text-decoration: none; }
 .secondary { background: #edf4f6; color: #365873; }
@@ -99,6 +114,7 @@ body {
   .topbar { align-items: flex-start; flex-direction: column; }
   .topbar h1 { font-size: 2.75rem; }
   .topbar .ghost { align-self: stretch; }
+  .top-actions { justify-content: flex-start; width: 100%; }
   .workspace { grid-template-columns: 1fr; }
   .preview-panel { position: static; order: -1; }
   .main-panel { min-height: auto; }
@@ -106,6 +122,7 @@ body {
 
 @media (max-width: 560px) {
   .shell { padding: 24px 13px 40px; }
+  .auth-card { padding: 28px 22px; }
   .topbar h1 { font-size: 2.25rem; }
   .tabs { overflow-x: auto; }
   .tabs button { flex: 0 0 auto; padding-inline: 14px; }
