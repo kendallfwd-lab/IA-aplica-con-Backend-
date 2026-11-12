@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const sequelize = require('./config/database');
-const { Factura, MemoriaChat } = require('./models');
+const { Factura, MemoriaChat, Customer, Contact, Service, Quote, Task } = require('./models');
 const { analizarFactura } = require('./services/agentServiceFacturas');
 const { saveInvoice, listInvoices, normalizeInvoice, validateInvoice } = require('./services/invoiceService');
 const { respond, clearConversation } = require('./services/invoiceChatService');
@@ -16,6 +16,9 @@ const { invoiceSvg } = require('./services/invoiceImageService');
 const { login, refresh, revoke } = require('./services/authService');
 const { authenticate, requireRoles } = require('./middlewares/auth');
 const { audit } = require('./services/auditService');
+const { createQuote, listCustomers, listServices, listQuotes, listTasks } = require('./services/businessService');
+
+async function facturaRecordUpdate(id, updates) { return Factura.update(updates, { where: { id } }); }
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3002;
@@ -94,6 +97,34 @@ app.post('/api/auth/logout', authenticate, async (req, res) => {
   return res.status(204).send();
 });
 app.get('/api/auth/me', authenticate, (req, res) => res.json({ success: true, data: { id: req.user.sub, email: req.user.email, rol: req.user.rol, organizacionId: req.user.organizacionId } }));
+
+app.get('/api/clientes', authenticate, async (req, res) => {
+  try { return res.json({ success: true, data: await listCustomers(req.user.organizacionId, req.query.search, req.query.limit, req.query.offset) }); } catch { return res.status(500).json({ success: false, error: 'No se pudieron consultar los clientes.' }); }
+});
+app.post('/api/clientes', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR', 'OPERADOR'), async (req, res) => {
+  try { if (!req.body.nombre) return res.status(422).json({ success: false, error: 'El nombre del cliente es obligatorio.' }); const customer = await Customer.create({ organizacionId: req.user.organizacionId, nombre: req.body.nombre, identificacion: req.body.identificacion || null, email: req.body.email || null, telefono: req.body.telefono || null, direccion: req.body.direccion || null, notas: req.body.notas || null }); await audit(req, { accion: 'CREAR', entidad: 'cliente', entidadId: customer.id, despues: customer.toJSON() }); return res.status(201).json({ success: true, data: customer }); } catch { return res.status(400).json({ success: false, error: 'No se pudo crear el cliente.' }); }
+});
+app.patch('/api/clientes/:id', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR', 'OPERADOR'), async (req, res) => {
+  const customer = await Customer.findOne({ where: { id: req.params.id, organizacionId: req.user.organizacionId } }); if (!customer) return res.status(404).json({ success: false, error: 'Cliente no encontrado.' });
+  const before = customer.toJSON(); await customer.update(Object.fromEntries(Object.entries(req.body).filter(([key]) => ['nombre', 'identificacion', 'email', 'telefono', 'direccion', 'notas'].includes(key)))); await audit(req, { accion: 'EDITAR', entidad: 'cliente', entidadId: customer.id, antes: before, despues: customer.toJSON() }); return res.json({ success: true, data: customer });
+});
+app.post('/api/clientes/:id/archivar', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR'), async (req, res) => { const customer = await Customer.findOne({ where: { id: req.params.id, organizacionId: req.user.organizacionId } }); if (!customer) return res.status(404).json({ success: false, error: 'Cliente no encontrado.' }); await customer.update({ estado: 'ARCHIVADO', archivadoAt: new Date() }); await audit(req, { accion: 'ARCHIVAR', entidad: 'cliente', entidadId: customer.id }); return res.json({ success: true, data: customer }); });
+app.get('/api/clientes/:id', authenticate, async (req, res) => { const customer = await Customer.findOne({ where: { id: req.params.id, organizacionId: req.user.organizacionId }, include: [{ model: Contact, as: 'contacts', required: false }] }).catch(() => null); if (!customer) return res.status(404).json({ success: false, error: 'Cliente no encontrado.' }); return res.json({ success: true, data: customer }); });
+
+app.get('/api/servicios', authenticate, async (req, res) => res.json({ success: true, data: await listServices(req.user.organizacionId) }));
+app.post('/api/servicios', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR'), async (req, res) => { try { if (!req.body.nombre || req.body.precio == null) return res.status(422).json({ success: false, error: 'Nombre y precio son obligatorios.' }); const service = await Service.create({ organizacionId: req.user.organizacionId, nombre: req.body.nombre, descripcion: req.body.descripcion || null, precio: req.body.precio, moneda: req.body.moneda || 'CRC' }); await audit(req, { accion: 'CREAR', entidad: 'servicio', entidadId: service.id }); return res.status(201).json({ success: true, data: service }); } catch (error) { return res.status(400).json({ success: false, error: error.message }); } });
+
+app.get('/api/cotizaciones', authenticate, async (req, res) => { try { return res.json({ success: true, data: await listQuotes(req.user.organizacionId, req.query) }); } catch { return res.status(500).json({ success: false, error: 'No se pudieron consultar las cotizaciones.' }); } });
+app.post('/api/cotizaciones', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR', 'OPERADOR'), async (req, res) => { try { const quote = await createQuote(req.body, req.user.organizacionId, req.get('Idempotency-Key')); await audit(req, { accion: 'CREAR', entidad: 'cotizacion', entidadId: quote.id, despues: { total: quote.total } }); return res.status(201).json({ success: true, data: quote }); } catch (error) { return res.status(400).json({ success: false, error: error.message }); } });
+app.post('/api/cotizaciones/:id/aceptar', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR'), async (req, res) => { const quote = await Quote.findOne({ where: { id: req.params.id, organizacionId: req.user.organizacionId } }); if (!quote) return res.status(404).json({ success: false, error: 'Cotización no encontrada.' }); if (quote.estado !== 'BORRADOR' && quote.estado !== 'ENVIADA') return res.status(409).json({ success: false, error: 'La cotización no está disponible para aceptación.' }); await quote.update({ estado: 'ACEPTADA', version: quote.version + 1 }); await audit(req, { accion: 'ACEPTAR', entidad: 'cotizacion', entidadId: quote.id }); return res.json({ success: true, data: quote }); });
+app.post('/api/cotizaciones/:id/convertir-factura', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR'), async (req, res) => {
+  const quote = await Quote.findOne({ where: { id: req.params.id, organizacionId: req.user.organizacionId } }); if (!quote) return res.status(404).json({ success: false, error: 'Cotización no encontrada.' }); if (quote.estado !== 'ACEPTADA') return res.status(409).json({ success: false, error: 'Solo una cotización aceptada puede convertirse.' }); if (quote.facturaId) return res.status(409).json({ success: false, error: `Ya fue convertida en la factura #${quote.facturaId}.` });
+  const lines = await require('./models').QuoteLine.findAll({ where: { cotizacionId: quote.id } });
+  try { const factura = await saveInvoice({ numero_factura: req.body.numero_factura, fecha_emision: req.body.fecha_emision, moneda: quote.moneda, subtotal: quote.subtotal, impuestos: quote.impuestos, total: quote.total, items: lines.map((line) => ({ descripcion: line.descripcion, cantidad: line.cantidad, precio_unitario: line.precioUnitario, importe: line.totalLinea })) }, `quote-${quote.id}`, { organizacionId: req.user.organizacionId }); await facturaRecordUpdate(factura.id, { clienteId: quote.clienteId, cotizacionId: quote.id }); await quote.update({ facturaId: factura.id }); await audit(req, { accion: 'CONVERTIR', entidad: 'cotizacion', entidadId: quote.id, despues: { facturaId: factura.id } }); return res.status(201).json({ success: true, data: factura }); } catch (error) { return res.status(400).json({ success: false, error: error.message }); }
+});
+
+app.get('/api/tareas', authenticate, async (req, res) => res.json({ success: true, data: await listTasks(req.user.organizacionId, req.query.estado) }));
+app.post('/api/tareas', authenticate, requireRoles('SUPER_ADMIN', 'ADMIN', 'CONTADOR', 'OPERADOR'), async (req, res) => { try { if (!req.body.titulo) return res.status(422).json({ success: false, error: 'El título es obligatorio.' }); const task = await Task.create({ organizacionId: req.user.organizacionId, clienteId: req.body.clienteId || null, cotizacionId: req.body.cotizacionId || null, facturaId: req.body.facturaId || null, asignadoA: req.body.asignadoA || null, titulo: req.body.titulo, descripcion: req.body.descripcion || null, vencimiento: req.body.vencimiento || null, prioridad: req.body.prioridad || 'MEDIA' }); await audit(req, { accion: 'CREAR', entidad: 'tarea', entidadId: task.id }); return res.status(201).json({ success: true, data: task }); } catch (error) { return res.status(400).json({ success: false, error: error.message }); } });
 
 app.use('/api/facturas', authenticate);
 app.get('/api/facturas', async (req, res) => {

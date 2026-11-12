@@ -2,6 +2,8 @@ module.exports = (sequelize, DataTypes) => {
   const Factura = sequelize.define('Factura', {
     id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
     organizacionId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, field: 'organizacion_id' },
+    clienteId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true, field: 'cliente_id' },
+    cotizacionId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true, field: 'cotizacion_id' },
     conversationId: { type: DataTypes.STRING(120), allowNull: true, field: 'conversation_id' },
     numeroFactura: { type: DataTypes.STRING(120), allowNull: true, field: 'numero_factura' },
     fechaEmision: { type: DataTypes.STRING(40), allowNull: true, field: 'fecha_emision' },

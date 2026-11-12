@@ -15,6 +15,13 @@ Todas las rutas privadas requieren `Authorization: Bearer <accessToken>`.
 - `GET /api/auth/me`
 - `GET /api/facturas?limit=50&estado=PENDIENTE_REVISION&search=texto`
 - `GET /api/dashboard/resumen`
+- `GET/POST/PATCH /api/clientes`
+- `POST /api/clientes/:id/archivar`
+- `GET/POST /api/servicios`
+- `GET/POST /api/cotizaciones`
+- `POST /api/cotizaciones/:id/aceptar`
+- `POST /api/cotizaciones/:id/convertir-factura`
+- `GET/POST /api/tareas`
 - `POST /api/facturas/manual`
 - `POST /api/facturas/chat`
 - `POST /api/facturas/chat-imagen`

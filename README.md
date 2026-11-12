@@ -16,7 +16,16 @@ Implementado en P0:
 - Frontend React conectado al login y a endpoints protegidos.
 - Pruebas unitarias y de API básicas.
 
-P1/P2 pendientes: cola de workers, PDF, proveedores/clientes normalizados, cuentas por pagar, reportes avanzados, exportación Excel, dashboard visual completo, OpenAPI formal y E2E Playwright.
+Implementado en Etapa 2 de negocio:
+
+- Clientes y contactos con aislamiento por organización, búsqueda, paginación y archivado.
+- Catálogo de servicios con precio de referencia.
+- Cotizaciones con líneas, snapshots del servicio, estados, cálculo determinista e `Idempotency-Key`.
+- Aceptación explícita y conversión única de cotización aceptada a factura pendiente de revisión.
+- Tareas de seguimiento vinculables a cliente, cotización o factura.
+- Tabla de membresías y solicitudes de acción para preparar acciones confirmables.
+
+P1/P2 pendientes: interfaz visual dedicada para clientes, servicios, cotizaciones y tareas; cola de workers, PDF, documentos/versiones, cuentas por pagar, reportes avanzados, exportación Excel, dashboard visual completo, herramientas empresariales del chat, OpenAPI formal y E2E Playwright.
 
 ## Inicio en Windows
 
