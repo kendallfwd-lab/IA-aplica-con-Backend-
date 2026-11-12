@@ -71,3 +71,4 @@ Consulta [DATABASE.md](DATABASE.md) para credenciales locales y respaldo.
 - [DATABASE.md](DATABASE.md)
 - [SECURITY.md](SECURITY.md)
 - [DEPLOYMENT.md](DEPLOYMENT.md)
+- [Hoja de ruta de producto](docs/PRODUCT-ROADMAP.md)
